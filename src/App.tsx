@@ -1,14 +1,27 @@
 import React from 'react';
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import { MainLayout } from '@/components/layout/MainLayout';
-import { Dashboard, NotFound, ComingSoon } from '@/pages';
+import { ProtectedRoute } from '@/components/ProtectedRoute';
+import { Dashboard, NotFound, ComingSoon, Login } from '@/pages';
 
 const App: React.FC = () => {
   return (
     <BrowserRouter>
       <Routes>
-        <Route path="/" element={<MainLayout />}>
+        {/* Login Route - No Layout */}
+        <Route path="/login" element={<Login />} />
+        
+        {/* Main App Routes - With Layout & Protected */}
+        <Route
+          path="/"
+          element={
+            <ProtectedRoute>
+              <MainLayout />
+            </ProtectedRoute>
+          }
+        >
           <Route index element={<Dashboard />} />
+          <Route path="dashboard" element={<Dashboard />} />
           <Route path="content-manager" element={<ComingSoon />} />
           <Route path="create-content" element={<ComingSoon />} />
           <Route path="ai-text-to-video" element={<Dashboard />} />

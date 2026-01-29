@@ -12,6 +12,19 @@ export const formatFileSize = (bytes: number): string => {
 };
 
 /**
+ * Format date to Vietnamese format
+ */
+export const formatDate = (date: Date): string => {
+  return new Intl.DateTimeFormat('vi-VN', {
+    year: 'numeric',
+    month: 'short',
+    day: 'numeric',
+    hour: '2-digit',
+    minute: '2-digit',
+  }).format(date);
+};
+
+/**
  * Format date to relative time
  */
 export const formatRelativeTime = (date: Date): string => {

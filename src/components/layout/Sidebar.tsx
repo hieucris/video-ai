@@ -28,14 +28,17 @@ const SidebarItem: React.FC<SidebarItemProps> = ({ item, isActive, depth = 0 }) 
         to={item.path}
         onClick={hasChildren ? (e) => { e.preventDefault(); handleToggle(); } : undefined}
         className={cn(
-          "flex items-center gap-3 px-4 py-3 text-sm transition-colors rounded-lg mx-2 my-1",
+          "flex items-center gap-3 px-4 py-3 text-sm transition-all rounded-xl mx-2 my-0.5 group",
           isActive
-            ? "bg-blue-100 text-blue-600 font-medium"
-            : "text-gray-700 hover:bg-gray-100",
+            ? "bg-gradient-to-r from-violet-600 to-purple-600 text-white font-semibold shadow-lg shadow-purple-500/30"
+            : "text-gray-700 hover:bg-gradient-to-r hover:from-purple-50 hover:to-violet-50 hover:text-purple-700",
           depth > 0 && "ml-6"
         )}
       >
-        <Icon className="h-5 w-5 flex-shrink-0" />
+        <Icon className={cn(
+          "h-5 w-5 flex-shrink-0 transition-transform group-hover:scale-110",
+          isActive && "text-white"
+        )} />
         <span className="flex-1">{item.label}</span>
         {hasChildren && (
           <span>
@@ -68,19 +71,21 @@ export const Sidebar: React.FC = () => {
   const location = useLocation();
 
   return (
-    <aside className="w-64 bg-white min-h-screen flex flex-col fixed left-0 top-0 overflow-y-auto border-r border-gray-200">
-      {/* Bảng xếp hạng - Yellow header */}
-      <div className="bg-yellow-500 px-4 py-3 flex items-center gap-2">
-        <Star className="h-5 w-5 text-white fill-white" />
-        <span className="text-white font-semibold">Bảng xếp hạng</span>
+    <aside className="w-64 bg-white/95 backdrop-blur-lg min-h-screen flex flex-col fixed left-0 top-0 overflow-y-auto border-r border-gray-200/80 shadow-xl scrollbar-custom z-20">
+      {/* Bảng xếp hạng - Gradient header */}
+      <div className="bg-gradient-to-r from-amber-500 to-yellow-500 px-4 py-4 flex items-center gap-3 shadow-lg">
+        <div className="w-10 h-10 bg-white/20 backdrop-blur-md rounded-xl flex items-center justify-center">
+          <Star className="h-6 w-6 text-white fill-white" />
+        </div>
+        <span className="text-white font-bold text-base">Bảng xếp hạng</span>
       </div>
 
       {/* Menu Items */}
-      <nav className="flex-1 py-2">
+      <nav className="flex-1 py-4 scrollbar-custom">
         {MENU_GROUPS.map((group, index) => (
-          <div key={index} className="mb-2">
+          <div key={index} className="mb-4">
             {group.title && (
-              <div className="px-4 py-2 text-xs font-semibold text-gray-400 uppercase">
+              <div className="px-4 py-2 text-xs font-bold text-gray-500 uppercase tracking-wider">
                 {group.title}
               </div>
             )}
@@ -96,9 +101,12 @@ export const Sidebar: React.FC = () => {
       </nav>
 
       {/* Footer - URL */}
-      <div className="p-4 border-t border-gray-200">
-        <div className="text-xs text-gray-400 text-center break-all">
-          Tool render video AI
+      <div className="p-4 border-t border-gray-200 bg-gradient-to-r from-violet-50 to-purple-50">
+        <div className="text-xs text-gray-600 text-center font-medium">
+          🎬 Tool render video AI
+        </div>
+        <div className="text-xs text-gray-400 text-center mt-1">
+          Powered by AI
         </div>
       </div>
     </aside>
