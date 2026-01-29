@@ -12,11 +12,13 @@ export interface Video {
   videoUrl?: string;
   createdAt: Date;
   status: 'generating' | 'completed' | 'failed';
+  progress?: number; // 0-100
+  errorMessage?: string;
 }
 
 export interface VideoGenerationParams {
   prompt: string;
-  image?: File | null;
+  imageId?: number | null; // Image ID after upload
   aspectRatio: AspectRatio;
   quality: VideoQuality;
 }

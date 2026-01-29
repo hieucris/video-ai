@@ -1,17 +1,31 @@
-import React from 'react';
+import React, { useState, useMemo } from 'react';
 import { VideoCard } from './VideoCard';
 import type { Video } from '@/types/video';
 import { motion } from 'framer-motion';
-import { Film, Sparkles } from 'lucide-react';
+import { Film, Sparkles, ChevronLeft, ChevronRight } from 'lucide-react';
 
 interface VideoListProps {
   videos: Video[];
 }
 
+const VIDEOS_PER_PAGE = 6;
+
 export const VideoList: React.FC<VideoListProps> = ({ videos }) => {
+  const [currentPage, setCurrentPage] = useState(1);
+
+  // Calculate pagination
+  const totalPages = Math.ceil(videos.length / VIDEOS_PER_PAGE);
+  const startIndex = (currentPage - 1) * VIDEOS_PER_PAGE;
+  const endIndex = startIndex + VIDEOS_PER_PAGE;
+  const currentVideos = useMemo(() => videos.slice(startIndex, endIndex), [videos, startIndex, endIndex]);
+
+  const handlePageChange = (page: number) => {
+    setCurrentPage(page);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
   if (videos.length === 0) {
     return (
-      <motion.div 
+      <motion.div
         initial={{ opacity: 0, scale: 0.95 }}
         animate={{ opacity: 1, scale: 1 }}
         transition={{ duration: 0.5 }}
@@ -19,11 +33,11 @@ export const VideoList: React.FC<VideoListProps> = ({ videos }) => {
       >
         <div className="text-center max-w-md">
           <motion.div
-            animate={{ 
+            animate={{
               rotate: [0, 5, -5, 0],
               scale: [1, 1.1, 1]
             }}
-            transition={{ 
+            transition={{
               duration: 3,
               repeat: Infinity,
               repeatType: "reverse"
@@ -50,7 +64,7 @@ export const VideoList: React.FC<VideoListProps> = ({ videos }) => {
   return (
     <div className="flex-1">
       {/* Header */}
-      <motion.div 
+      <motion.div
         initial={{ opacity: 0, y: -10 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.4 }}
@@ -66,11 +80,11 @@ export const VideoList: React.FC<VideoListProps> = ({ videos }) => {
                 Video đã tạo
               </h2>
               <p className="text-sm text-gray-600">
-                {videos.length} video trong thư viện
+                {videos.length} video • Trang {currentPage}/{totalPages}
               </p>
             </div>
           </div>
-          
+
           {/* Stats */}
           <div className="hidden sm:flex items-center gap-4">
             <div className="text-right">
@@ -89,13 +103,14 @@ export const VideoList: React.FC<VideoListProps> = ({ videos }) => {
       </motion.div>
 
       {/* Video Grid */}
-      <motion.div 
+      <motion.div
+        key={currentPage}
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         transition={{ duration: 0.5, delay: 0.2 }}
         className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6"
       >
-        {videos.map((video, index) => (
+        {currentVideos.map((video, index) => (
           <motion.div
             key={video.id}
             initial={{ opacity: 0, y: 20 }}
@@ -106,6 +121,86 @@ export const VideoList: React.FC<VideoListProps> = ({ videos }) => {
           </motion.div>
         ))}
       </motion.div>
+
+      {/* Pagination */}
+      {totalPages > 1 && (
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.4, delay: 0.3 }}
+          className="mt-8 flex items-center justify-center gap-2"
+        >
+          {/* Previous Button */}
+          <motion.button
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
+            onClick={() => handlePageChange(currentPage - 1)}
+            disabled={currentPage === 1}
+            className={`px-4 py-2 rounded-lg font-medium transition-all flex items-center gap-2 ${currentPage === 1
+              ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
+              : 'bg-white text-gray-700 hover:bg-violet-50 hover:text-violet-600 border border-gray-200 shadow-sm'
+              }`}
+          >
+            <ChevronLeft className="h-4 w-4" />
+            <span className="hidden sm:inline">Trước</span>
+          </motion.button>
+
+          {/* Page Numbers */}
+          <div className="flex items-center gap-2">
+            {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => {
+              // Show first page, last page, current page, and pages around current
+              const showPage =
+                page === 1 ||
+                page === totalPages ||
+                (page >= currentPage - 1 && page <= currentPage + 1);
+
+              const showEllipsis =
+                (page === currentPage - 2 && currentPage > 3) ||
+                (page === currentPage + 2 && currentPage < totalPages - 2);
+
+              if (showEllipsis) {
+                return (
+                  <span key={page} className="px-2 text-gray-400">
+                    ...
+                  </span>
+                );
+              }
+
+              if (!showPage) return null;
+
+              return (
+                <motion.button
+                  key={page}
+                  whileHover={{ scale: 1.1 }}
+                  whileTap={{ scale: 0.9 }}
+                  onClick={() => handlePageChange(page)}
+                  className={`w-10 h-10 rounded-lg font-semibold transition-all ${currentPage === page
+                    ? 'bg-gradient-to-r from-violet-600 to-purple-600 text-white shadow-lg shadow-purple-500/30'
+                    : 'bg-white text-gray-700 hover:bg-violet-50 hover:text-violet-600 border border-gray-200'
+                    }`}
+                >
+                  {page}
+                </motion.button>
+              );
+            })}
+          </div>
+
+          {/* Next Button */}
+          <motion.button
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
+            onClick={() => handlePageChange(currentPage + 1)}
+            disabled={currentPage === totalPages}
+            className={`px-4 py-2 rounded-lg font-medium transition-all flex items-center gap-2 ${currentPage === totalPages
+              ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
+              : 'bg-white text-gray-700 hover:bg-violet-50 hover:text-violet-600 border border-gray-200 shadow-sm'
+              }`}
+          >
+            <span className="hidden sm:inline">Sau</span>
+            <ChevronRight className="h-4 w-4" />
+          </motion.button>
+        </motion.div>
+      )}
     </div>
   );
 };

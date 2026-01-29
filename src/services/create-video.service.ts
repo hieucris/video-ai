@@ -1,35 +1,141 @@
 import axios from 'axios';
-import type { CreateVideoJobRequest } from './types/video/request.types';
+import type { 
+  CreateVideoJobRequest, 
+  CreateVideoJobResponse,
+  GetVideoJobsResponse,
+  VideoJobStatus,
+  UploadedImage
+} from './types/video/request.types';
 
-export async function createVideoJob(
+// Use proxy in development to avoid CORS issues
+const API_BASE_URL = import.meta.env.DEV 
+  ? '/api/v1'  // Proxy through Vite dev server
+  : 'https://system.kingcontent.pro/api/v1';  // Direct URL in production
+
+/**
+ * Upload image to server
+ * @param file - Image file to upload
+ * @param token - Authentication token
+ * @returns Promise with uploaded image data including ID
+ */
+export const uploadImage = async (
+  file: File,
+  token: string
+): Promise<UploadedImage> => {
+  try {
+    const formData = new FormData();
+    formData.append('image', file); // ← Field name is 'image' not 'images'
+
+    console.log('📤 Uploading image:', {
+      fileName: file.name,
+      fileSize: file.size,
+      fileType: file.type
+    });
+
+    const response = await axios.post<UploadedImage>(
+      `${API_BASE_URL}/user/video-ai/images`,
+      formData,
+      {
+        headers: {
+          'Accept': 'application/json, text/plain, */*',
+          'Authorization': `Bearer ${token}`,
+          // Let axios set Content-Type with boundary automatically
+          'Cache-Control': 'no-cache',
+          'Pragma': 'no-cache',
+        },
+      }
+    );
+    
+    console.log('✅ Upload response:', response.data);
+    return response.data;
+  } catch (error) {
+    if (axios.isAxiosError(error)) {
+      const errorMessage = error.response?.data?.message || error.message;
+      const errorDetails = error.response?.data;
+      console.error('❌ Upload error:', errorDetails || errorMessage);
+      throw new Error(`Failed to upload image: ${errorMessage}`);
+    }
+    throw error;
+  }
+};
+
+/**
+ * Create a video generation job
+ * @param data - Video generation parameters
+ * @param token - Authentication token
+ * @returns Promise with the API response
+ */
+export const createVideoJob = async (
   data: CreateVideoJobRequest,
   token: string
-) {
-  const response = await axios.post(
-    'https://system.kingcontent.pro/api/v1/user/video-ai/jobs',
-    data,
-    {
-      headers: {
-        'accept': 'application/json, text/plain, */*',
-        'accept-language': 'en,vi;q=0.9',
-        'access-control-allow-headers': 'Origin, X-Requested-With, Content-Type, Accept',
-        'access-control-allow-methods': '*',
-        'access-control-allow-origin': '*',
-        'authorization': `Bearer ${token}`,
-        'content-type': 'application/json',
-        'origin': 'https://kingcontent.pro',
-        'priority': 'u=1, i',
-        'referer': 'https://kingcontent.pro/',
-        'sec-ch-ua': '"Google Chrome";v="143", "Chromium";v="143", "Not A(Brand";v="24"',
-        'sec-ch-ua-mobile': '?0',
-        'sec-ch-ua-platform': '"macOS"',
-        'sec-fetch-dest': 'empty',
-        'sec-fetch-mode': 'cors',
-        'sec-fetch-site': 'same-site',
-        'user-agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36',
-      },
-      withCredentials: true,
+): Promise<CreateVideoJobResponse> => {
+  try {
+    const response = await axios.post<CreateVideoJobResponse>(
+      `${API_BASE_URL}/user/video-ai/jobs`,
+      data,
+      {
+        headers: {
+          'Accept': 'application/json, text/plain, */*',
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json',
+          'Cache-Control': 'no-cache',
+          'Pragma': 'no-cache',
+        },
+      }
+    );
+    
+    return response.data;
+  } catch (error) {
+    if (axios.isAxiosError(error)) {
+      const errorMessage = error.response?.data?.message || error.message;
+      throw new Error(errorMessage);
     }
-  );
-  return response.data;
-}
+    throw error;
+  }
+};
+
+/**
+ * Get video jobs by status
+ * @param token - Authentication token
+ * @param statuses - Array of job statuses to filter
+ * @param page - Page number (default: 1)
+ * @param perPage - Number of items per page (default: 12)
+ * @param withResults - Include results data (default: true)
+ * @returns Promise with paginated video jobs
+ */
+export const getVideoJobs = async (
+  token: string,
+  statuses: VideoJobStatus[] = ['queued', 'processing', 'merging', 'failed'],
+  page: number = 1,
+  perPage: number = 12,
+  withResults: boolean = true
+): Promise<GetVideoJobsResponse> => {
+  try {
+    const statusParam = statuses.join(',');
+    const response = await axios.get<GetVideoJobsResponse>(
+      `${API_BASE_URL}/user/video-ai/jobs`,
+      {
+        params: {
+          status: statusParam,
+          page,
+          per_page: perPage,
+          with_results: withResults,
+        },
+        headers: {
+          'Accept': 'application/json, text/plain, */*',
+          'Authorization': `Bearer ${token}`,
+          'Cache-Control': 'no-cache',
+          'Pragma': 'no-cache',
+        },
+      }
+    );
+    
+    return response.data;
+  } catch (error) {
+    if (axios.isAxiosError(error)) {
+      const errorMessage = error.response?.data?.message || error.message;
+      throw new Error(errorMessage);
+    }
+    throw error;
+  }
+};

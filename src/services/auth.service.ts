@@ -80,6 +80,28 @@ class AuthService {
   }
 
   /**
+   * Get user info from API
+   */
+  async getUserInfo(): Promise<LoginResponse> {
+    try {
+      const response = await this.axiosInstance.get<LoginResponse>('/user/me');
+
+      // Update stored user data
+      if (response.data.success && response.data.data) {
+        this.saveUser(response.data.data);
+      }
+
+      return response.data;
+    } catch (error) {
+      if (axios.isAxiosError(error)) {
+        const errorMessage = error.response?.data?.message || error.message;
+        throw new Error(errorMessage);
+      }
+      throw error;
+    }
+  }
+
+  /**
    * Logout user
    */
   logout(): void {

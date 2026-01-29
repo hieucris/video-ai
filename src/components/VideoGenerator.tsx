@@ -2,49 +2,67 @@ import React, { useState, useRef } from 'react';
 import { Upload, Smartphone, Monitor, Image as ImageIcon, Sparkles, Wand2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Select } from '@/components/ui/select';
-import { Input } from '@/components/ui/input';
 import { cn } from '@/lib/utils';
 import { VIDEO_QUALITIES } from '@/constants';
 import { validateImageFile, validatePrompt } from '@/utils/validation';
 import type { AspectRatio, VideoQuality } from '@/types/video';
 import { motion } from 'framer-motion';
+import { TextArea } from './ui/text-aria';
 
 interface VideoGeneratorProps {
   onGenerate: (params: {
     prompt: string;
-    image: File | null;
+    imageId: number | null;
     aspectRatio: AspectRatio;
     quality: VideoQuality;
   }) => void;
+  onImageUpload: (file: File) => Promise<number>;
   isGenerating: boolean;
 }
 
 export const VideoGenerator: React.FC<VideoGeneratorProps> = ({
   onGenerate,
+  onImageUpload,
   isGenerating,
 }) => {
   const [prompt, setPrompt] = useState('');
-  const [image, setImage] = useState<File | null>(null);
+  const [uploadedImageId, setUploadedImageId] = useState<number | null>(null);
   const [imagePreview, setImagePreview] = useState<string | null>(null);
+  const [isUploadingImage, setIsUploadingImage] = useState(false);
   const [aspectRatio, setAspectRatio] = useState<AspectRatio>('16:9');
   const [quality, setQuality] = useState<VideoQuality>('1080p');
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
-    if (file) {
-      const validation = validateImageFile(file);
-      if (!validation.valid) {
-        alert(validation.error);
-        return;
-      }
+    if (!file) return;
 
-      setImage(file);
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        setImagePreview(reader.result as string);
-      };
-      reader.readAsDataURL(file);
+    const validation = validateImageFile(file);
+    if (!validation.valid) {
+      alert(validation.error);
+      return;
+    }
+
+    // Show preview immediately
+    const reader = new FileReader();
+    reader.onloadend = () => {
+      setImagePreview(reader.result as string);
+    };
+    reader.readAsDataURL(file);
+
+    // Upload to server immediately
+    setIsUploadingImage(true);
+    try {
+      console.log('📤 Starting upload for:', file.name);
+      const imageId = await onImageUpload(file);
+      setUploadedImageId(imageId);
+      console.log('✅ Image uploaded, ID:', imageId);
+    } catch (error) {
+      console.error('❌ Upload failed:', error);
+      alert(error instanceof Error ? error.message : 'Failed to upload image');
+      setImagePreview(null);
+    } finally {
+      setIsUploadingImage(false);
     }
   };
 
@@ -57,7 +75,7 @@ export const VideoGenerator: React.FC<VideoGeneratorProps> = ({
 
     onGenerate({
       prompt,
-      image,
+      imageId: uploadedImageId,
       aspectRatio,
       quality,
     });
@@ -78,12 +96,30 @@ export const VideoGenerator: React.FC<VideoGeneratorProps> = ({
       </div>
 
       <div className="p-6">
+        {/* Prompt Input */}
+        <div className="mb-5">
+          <label className="block text-sm font-medium text-gray-700 mb-2">
+            Mô tả video
+          </label>
+          <div className="relative">
+            <TextArea
+              value={prompt}
+              rows={4}
+              onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) => setPrompt(e.target.value)}
+              placeholder="Ví dụ: Một bình minh đẹp trên đồi núi..."
+              aria-label="Video prompt"
+              className="pr-10"
+            />
+            <Sparkles className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-purple-400" />
+          </div>
+        </div>
+        
         {/* Image Preview */}
         <div className="mb-5">
           <label className="block text-sm font-medium text-gray-700 mb-2">
             Ảnh gốc
           </label>
-          <motion.div 
+          <motion.div
             whileHover={{ scale: 1.02 }}
             transition={{ duration: 0.2 }}
             className="relative w-full h-52 border-2 border-dashed border-gray-300 rounded-xl flex items-center justify-center bg-gradient-to-br from-gray-50 to-gray-100 overflow-hidden group cursor-pointer"
@@ -96,12 +132,21 @@ export const VideoGenerator: React.FC<VideoGeneratorProps> = ({
                   alt="Preview"
                   className="w-full h-full object-cover"
                 />
-                <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
-                  <div className="text-white text-center">
-                    <Upload className="h-8 w-8 mx-auto mb-2" />
-                    <p className="text-sm font-medium">Thay đổi ảnh</p>
+                {isUploadingImage ? (
+                  <div className="absolute inset-0 bg-black/60 flex items-center justify-center">
+                    <div className="text-white text-center">
+                      <Sparkles className="h-8 w-8 mx-auto mb-2 animate-spin" />
+                      <p className="text-sm font-medium">Đang tải ảnh lên...</p>
+                    </div>
                   </div>
-                </div>
+                ) : (
+                  <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                    <div className="text-white text-center">
+                      <Upload className="h-8 w-8 mx-auto mb-2" />
+                      <p className="text-sm font-medium">Thay đổi ảnh</p>
+                    </div>
+                  </div>
+                )}
               </>
             ) : (
               <div className="text-center p-4">
@@ -109,7 +154,7 @@ export const VideoGenerator: React.FC<VideoGeneratorProps> = ({
                   <ImageIcon className="h-8 w-8 text-violet-600" />
                 </div>
                 <p className="text-gray-500 text-sm font-medium mb-1">
-                  {prompt || 'Nhấn để tải ảnh lên'}
+                  {'Nhấn để tải ảnh lên'}
                 </p>
                 <p className="text-gray-400 text-xs">
                   PNG, JPG, WEBP (tối đa 10MB)
@@ -118,34 +163,6 @@ export const VideoGenerator: React.FC<VideoGeneratorProps> = ({
             )}
           </motion.div>
         </div>
-
-        {/* Prompt Input */}
-        <div className="mb-5">
-          <label className="block text-sm font-medium text-gray-700 mb-2">
-            Mô tả video
-          </label>
-          <div className="relative">
-            <Input
-              type="text"
-              value={prompt}
-              onChange={(e) => setPrompt(e.target.value)}
-              placeholder="Ví dụ: Một bình minh đẹp trên đồi núi..."
-              aria-label="Video prompt"
-              className="pr-10"
-            />
-            <Sparkles className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-purple-400" />
-          </div>
-        </div>
-
-        {/* Upload Button */}
-        <Button
-          onClick={handleUploadClick}
-          variant="outline"
-          className="w-full mb-5 justify-center border-2 hover:border-purple-500 hover:bg-purple-50 transition-all"
-        >
-          <Upload className="mr-2 h-4 w-4" />
-          Tải ảnh lên
-        </Button>
         <input
           ref={fileInputRef}
           type="file"
