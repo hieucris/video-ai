@@ -71,7 +71,7 @@ export const Header: React.FC<HeaderProps> = ({ onMenuToggle }) => {
               >
                 <div className="text-left">
                   <p className="text-sm font-medium text-gray-700">
-                    {user?.full_name || user?.name || 'User'}
+                    {user?.name || 'User'}
                   </p>
                   <p className="text-xs text-purple-600 font-semibold">
                     {getUserRole()}
@@ -95,7 +95,7 @@ export const Header: React.FC<HeaderProps> = ({ onMenuToggle }) => {
                   <div className="px-4 py-3 border-b border-gray-100 bg-gradient-to-r from-purple-50 to-violet-50">
                     <div className="flex items-center gap-2 mb-2">
                       <p className="text-sm font-bold text-gray-800">
-                        {user?.full_name || user?.name || 'User'}
+                        {user?.name || 'User'}
                       </p>
                       <span className="px-2 py-0.5 bg-gradient-to-r from-violet-600 to-purple-600 text-white text-xs font-bold rounded-full flex items-center gap-1">
                         <Crown className="h-3 w-3" />

@@ -7,7 +7,7 @@ import { useVideoGeneration } from '@/hooks/useVideoGeneration';
 import { motion } from 'framer-motion';
 
 export const Dashboard: React.FC = () => {
-  const { videos, isGenerating, generateVideo, handleImageUpload } = useVideoGeneration();
+  const { videos, isGenerating, generateVideo, handleImageUpload, deleteVideo } = useVideoGeneration();
 
   return (
     <div className="space-y-8">
@@ -59,7 +59,7 @@ export const Dashboard: React.FC = () => {
           transition={{ duration: 0.5, delay: 0.3 }}
           className="flex-1 w-full min-w-0"
         >
-          <VideoList videos={videos} />
+          <VideoList videos={videos} onDeleteVideo={deleteVideo} />
         </motion.div>
       </div>
     </div>

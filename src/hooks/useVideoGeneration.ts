@@ -1,6 +1,6 @@
 import { useState, useCallback, useEffect, useRef } from 'react';
 import type { Video, VideoGenerationParams, AspectRatio } from '@/types/video';
-import { createVideoJob, getVideoJobs, uploadImage } from '@/services/create-video.service';
+import { createVideoJob, getVideoJobs, uploadImage, deleteVideoJob } from '@/services/create-video.service';
 import type { CreateVideoJobRequest, VideoJob } from '@/services/types/video/request.types';
 import { authService } from '@/services/auth.service';
 import { USER_INFO_REFRESHED_EVENT } from '@/hooks/useAuth';
@@ -91,7 +91,7 @@ export const useVideoGeneration = () => {
         token, 
         ['done', 'processing'], 
         1,
-        12,
+        100,
         true
       );
       
@@ -124,7 +124,7 @@ export const useVideoGeneration = () => {
         token, 
         ['queued', 'processing', 'merging', 'failed'],
         1,
-        12,
+        100,
         true
       );
       
@@ -314,8 +314,33 @@ export const useVideoGeneration = () => {
     }
   }, [startPolling]);
 
-  const deleteVideo = useCallback((id: string) => {
-    setVideos(prev => prev.filter(v => v.id !== id));
+  const deleteVideo = useCallback(async (id: string) => {
+    try {
+      const token = localStorage.getItem('token');
+      if (!token) {
+        throw new Error('Authentication token not found. Please login again.');
+      }
+
+      console.log(`🗑️ Deleting video job ${id}...`);
+      await deleteVideoJob(id, token);
+      
+      // Remove from local state after successful deletion
+      setVideos(prev => prev.filter(v => v.id !== id));
+      
+      console.log(`✅ Video ${id} deleted successfully`);
+      
+      // Refresh user info to update stats
+      try {
+        await authService.getUserInfo();
+        window.dispatchEvent(new Event(USER_INFO_REFRESHED_EVENT));
+      } catch (error) {
+        console.error('❌ Failed to refresh user info:', error);
+      }
+    } catch (error) {
+      console.error('Error deleting video:', error);
+      const errorMessage = error instanceof Error ? error.message : 'Failed to delete video';
+      throw new Error(errorMessage);
+    }
   }, []);
 
   return {

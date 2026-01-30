@@ -72,12 +72,12 @@ export const Sidebar: React.FC = () => {
 
   return (
     <aside className="w-64 bg-white/95 backdrop-blur-lg min-h-screen flex flex-col fixed left-0 top-0 overflow-y-auto border-r border-gray-200/80 shadow-xl scrollbar-custom z-20">
-      {/* Bảng xếp hạng - Gradient header */}
-      <div className="bg-gradient-to-r from-amber-500 to-yellow-500 px-4 py-4 flex items-center gap-3 shadow-lg">
+      {/* Chức năng chính - Gradient header */}
+      <div className="bg-gradient-to-r from-amber-500 to-yellow-500 px-4 py-3 flex items-center gap-3 shadow-lg">
         <div className="w-10 h-10 bg-white/20 backdrop-blur-md rounded-xl flex items-center justify-center">
           <Star className="h-6 w-6 text-white fill-white" />
         </div>
-        <span className="text-white font-bold text-base">Bảng xếp hạng</span>
+        <span className="text-white font-bold text-base">Chức năng chính</span>
       </div>
 
       {/* Menu Items */}

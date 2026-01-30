@@ -6,11 +6,12 @@ import { Film, Sparkles, ChevronLeft, ChevronRight } from 'lucide-react';
 
 interface VideoListProps {
   videos: Video[];
+  onDeleteVideo?: (id: string) => Promise<void>;
 }
 
 const VIDEOS_PER_PAGE = 6;
 
-export const VideoList: React.FC<VideoListProps> = ({ videos }) => {
+export const VideoList: React.FC<VideoListProps> = ({ videos, onDeleteVideo }) => {
   const [currentPage, setCurrentPage] = useState(1);
 
   // Calculate pagination
@@ -117,7 +118,7 @@ export const VideoList: React.FC<VideoListProps> = ({ videos }) => {
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.4, delay: index * 0.1 }}
           >
-            <VideoCard video={video} />
+            <VideoCard video={video} onDelete={onDeleteVideo} />
           </motion.div>
         ))}
       </motion.div>

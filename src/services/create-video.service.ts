@@ -107,7 +107,7 @@ export const getVideoJobs = async (
   token: string,
   statuses: VideoJobStatus[] = ['queued', 'processing', 'merging'],
   page: number = 1,
-  perPage: number = 12,
+  perPage: number = 100,
   withResults: boolean = true
 ): Promise<GetVideoJobsResponse> => {
   try {
@@ -135,6 +135,39 @@ export const getVideoJobs = async (
     if (axios.isAxiosError(error)) {
       const errorMessage = error.response?.data?.message || error.message;
       throw new Error(errorMessage);
+    }
+    throw error;
+  }
+};
+
+/**
+ * Delete a video job
+ * @param jobId - ID of the video job to delete
+ * @param token - Authentication token
+ * @returns Promise with the API response
+ */
+export const deleteVideoJob = async (
+  jobId: string,
+  token: string
+): Promise<void> => {
+  try {
+    await axios.delete(
+      `${API_BASE_URL}/user/video-ai/jobs/${jobId}`,
+      {
+        headers: {
+          'Accept': 'application/json, text/plain, */*',
+          'Authorization': `Bearer ${token}`,
+          'Cache-Control': 'no-cache',
+          'Pragma': 'no-cache',
+        },
+      }
+    );
+    
+    console.log(`✅ Video job ${jobId} deleted successfully`);
+  } catch (error) {
+    if (axios.isAxiosError(error)) {
+      const errorMessage = error.response?.data?.message || error.message;
+      throw new Error(`Failed to delete video: ${errorMessage}`);
     }
     throw error;
   }
