@@ -137,7 +137,21 @@ export const useVideoGeneration = () => {
         return true;
       }
       
-      const apiVideos = response.data.map(mapVideoJobToVideo);
+      // Filter chỉ lấy video có status "processing" hoặc "queued"
+      const filteredJobs = response.data.filter(
+        job => job.status === 'processing' || job.status === 'queued'
+      );
+      
+      console.log(`🔍 Filtered: ${filteredJobs.length} videos (processing/queued) from ${response.data.length} total`);
+      
+      if (filteredJobs.length === 0) {
+        console.log('✅ No videos with status processing/queued! Stopping polling...');
+        console.log('🔄 Fetching completed videos...');
+        await fetchAllVideos();
+        return true;
+      }
+      
+      const apiVideos = filteredJobs.map(mapVideoJobToVideo);
       console.log(`✅ Mapped ${apiVideos.length} videos:`, apiVideos.map(v => `ID:${v.id} Status:${v.status} Progress:${v.progress}%`));
       
       setVideos(prev => {

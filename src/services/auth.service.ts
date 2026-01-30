@@ -46,7 +46,8 @@ class AuthService {
         if (error.response?.status === 401) {
           // Unauthorized - clear token and redirect to login
           this.clearToken();
-          window.location.href = '/login';
+          this.clearUser();
+          window.location.replace('/login');
         }
         return Promise.reject(error);
       }
@@ -107,7 +108,8 @@ class AuthService {
   logout(): void {
     this.clearToken();
     this.clearUser();
-    window.location.href = '/login';
+    // Use replace to avoid adding to browser history
+    window.location.replace('/login');
   }
 
   /**

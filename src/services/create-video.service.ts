@@ -105,7 +105,7 @@ export const createVideoJob = async (
  */
 export const getVideoJobs = async (
   token: string,
-  statuses: VideoJobStatus[] = ['queued', 'processing', 'merging', 'failed'],
+  statuses: VideoJobStatus[] = ['queued', 'processing', 'merging'],
   page: number = 1,
   perPage: number = 12,
   withResults: boolean = true
