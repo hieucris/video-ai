@@ -1,7 +1,7 @@
 import type { VideoQuality, AspectRatio } from '@/types/video';
 
 export const VIDEO_QUALITIES: { value: VideoQuality; label: string }[] = [
-  { value: '720p', label: '720p' },
+  // { value: '720p', label: '720p' },
   { value: '1080p', label: '1080p' },
 ];
 

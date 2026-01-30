@@ -89,10 +89,7 @@ export const useVideoGeneration = () => {
 
       const response = await getVideoJobs(
         token, 
-        ['done', 'processing'], 
-        1,
-        100,
-        true
+        ['done', 'processing']
       );
       
       if (response.data && response.data.length > 0) {
@@ -122,10 +119,7 @@ export const useVideoGeneration = () => {
       
       const response = await getVideoJobs(
         token, 
-        ['queued', 'processing', 'merging', 'failed'],
-        1,
-        100,
-        true
+        ['queued', 'processing', 'merging', 'failed']
       );
       
       console.log(`📊 Response: total=${response.total}, data.length=${response.data?.length || 0}`);

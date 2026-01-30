@@ -105,10 +105,7 @@ export const createVideoJob = async (
  */
 export const getVideoJobs = async (
   token: string,
-  statuses: VideoJobStatus[] = ['queued', 'processing', 'merging'],
-  page: number = 1,
-  perPage: number = 100,
-  withResults: boolean = true
+  statuses: VideoJobStatus[] = ['queued', 'processing', 'merging']
 ): Promise<GetVideoJobsResponse> => {
   try {
     const statusParam = statuses.join(',');
@@ -117,9 +114,6 @@ export const getVideoJobs = async (
       {
         params: {
           status: statusParam,
-          page,
-          per_page: perPage,
-          with_results: withResults,
         },
         headers: {
           'Accept': 'application/json, text/plain, */*',

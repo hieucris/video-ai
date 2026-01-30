@@ -113,7 +113,7 @@ export const VideoGenerator: React.FC<VideoGeneratorProps> = ({
             <Sparkles className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-purple-400" />
           </div>
         </div>
-        
+
         {/* Image Preview */}
         <div className="mb-5">
           <label className="block text-sm font-medium text-gray-700 mb-2">
