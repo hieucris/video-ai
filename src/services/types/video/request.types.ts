@@ -16,7 +16,7 @@ export interface CreateVideoJobRequest {
   scene_count: number | null; // Số lượng cảnh mong muốn.
   character_name: string | null; // Tên nhân vật cố định
   character_description: string | null; // Mô tả chi tiết để giữ nhân vật ổn định giữa nhiều lần gen
-  scenes: unknown | null; // Dùng khi muốn chia kịch bản thành nhiều cảnh
+  scenes: string[] | null; // Dùng khi muốn chia kịch bản thành nhiều cảnh
   scene_images: unknown | null; // Ảnh riêng cho từng scene
   enable_character_consistency: boolean; // Giữ nhân vật giống nhau giữa nhiều lần generate
   mode: 'short' | 'long'; // short || long

@@ -42,9 +42,52 @@ const mapAspectRatioFromApi = (aspectRatio: string): AspectRatio => {
 };
 
 /**
- * Convert API VideoJob to UI Video format
+ * Convert API VideoJob to UI Video format(s)
+ * Returns array of videos:
+ * - If auto_merge: true or only 1 result → returns 1 video (merged)
+ * - If auto_merge: false and multiple results → returns multiple videos (one per scene)
  */
-const mapVideoJobToVideo = (job: VideoJob): Video => {
+const mapVideoJobToVideos = (job: VideoJob): Video[] => {
+  // Check if we should show individual scene videos
+  const shouldShowIndividualScenes = 
+    !job.auto_merge && 
+    job.results && 
+    job.results.length > 1 &&
+    job.status === 'done';
+
+  if (shouldShowIndividualScenes) {
+    // Map each scene result to a separate video card
+    return job.results.map((result, index) => {
+      const scenePrompt = result.scene_prompt || job.prompt;
+      const thumbnail = result.result_thumbnail || '';
+      const videoUrl = result.result_url || undefined;
+      
+      let status: 'generating' | 'completed' | 'failed';
+      if (result.status === 'failed') {
+        status = 'failed';
+      } else if (result.status === 'completed' && videoUrl) {
+        status = 'completed';
+      } else {
+        status = 'generating';
+      }
+
+      return {
+        id: `${job.id}-scene-${index}`, // Unique ID for each scene
+        prompt: `Cảnh ${index + 1}: ${scenePrompt}`,
+        thumbnail,
+        duration: '0:00',
+        quality: '1080p',
+        aspectRatio: mapAspectRatioFromApi(job.aspect_ratio),
+        videoUrl,
+        createdAt: new Date(job.created_at),
+        status,
+        progress: result.status === 'completed' ? 100 : job.progress,
+        errorMessage: result.error_message || undefined,
+      };
+    });
+  }
+
+  // Default behavior: return single video (merged or first result)
   const thumbnail = job.result_thumbnails?.[0] || job.results?.[0]?.result_thumbnail || '';
   const videoUrl = job.merged_video_url || job.result_urls?.[0] || job.results?.[0]?.result_url || undefined;
   
@@ -57,7 +100,7 @@ const mapVideoJobToVideo = (job: VideoJob): Video => {
     status = 'generating';
   }
 
-  return {
+  return [{
     id: job.id.toString(),
     prompt: job.prompt,
     thumbnail,
@@ -69,7 +112,7 @@ const mapVideoJobToVideo = (job: VideoJob): Video => {
     status,
     progress: job.progress,
     errorMessage: job.error_message || undefined,
-  };
+  }];
 };
 
 const POLLING_INTERVAL = 15000; // 15 seconds
@@ -80,7 +123,7 @@ export const useVideoGeneration = () => {
   const pollingIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   /**
-   * Fetch all videos (done + processing) để hiển thị đầy đủ
+   * Fetch all videos (done + processing + merging) để hiển thị đầy đủ
    */
   const fetchAllVideos = useCallback(async () => {
     try {
@@ -89,13 +132,14 @@ export const useVideoGeneration = () => {
 
       const response = await getVideoJobs(
         token, 
-        ['done', 'processing']
+        ['done', 'processing' ,'merging']
       );
       
       if (response.data && response.data.length > 0) {
-        const allVideos = response.data.map(mapVideoJobToVideo);
+        // Flatten the array since mapVideoJobToVideos returns Video[]
+        const allVideos = response.data.flatMap(mapVideoJobToVideos);
         setVideos(allVideos);
-        console.log(`📹 Fetched ${allVideos.length} videos (done + processing)`);
+        console.log(`📹 Fetched ${allVideos.length} videos (done + processing + merging)`);
       } else {
         console.log('📹 No videos found');
       }
@@ -133,19 +177,20 @@ export const useVideoGeneration = () => {
       
       // Filter chỉ lấy video có status "processing" hoặc "queued"
       const filteredJobs = response.data.filter(
-        job => job.status === 'processing' || job.status === 'queued'
+        job => job.status === 'processing' || job.status === 'queued' || job.status === 'merging'
       );
       
-      console.log(`🔍 Filtered: ${filteredJobs.length} videos (processing/queued) from ${response.data.length} total`);
+      console.log(`🔍 Filtered: ${filteredJobs.length} videos (processing/queued/merging) from ${response.data.length} total`);
       
       if (filteredJobs.length === 0) {
-        console.log('✅ No videos with status processing/queued! Stopping polling...');
+        console.log('✅ No videos with status processing/queued/merging! Stopping polling...');
         console.log('🔄 Fetching completed videos...');
         await fetchAllVideos();
         return true;
       }
       
-      const apiVideos = filteredJobs.map(mapVideoJobToVideo);
+      // Flatten the array since mapVideoJobToVideos returns Video[]
+      const apiVideos = filteredJobs.flatMap(mapVideoJobToVideos);
       console.log(`✅ Mapped ${apiVideos.length} videos:`, apiVideos.map(v => `ID:${v.id} Status:${v.status} Progress:${v.progress}%`));
       
       setVideos(prev => {
@@ -259,21 +304,25 @@ export const useVideoGeneration = () => {
 
       const selectedImageIds: number[] | null = params.imageId ? [params.imageId] : null;
 
+      // Use scenes from params (already generated and edited in component)
+      const scenesData = params.scenes || null;
+      const sceneCount = params.sceneCount || null;
+
       const requestData: CreateVideoJobRequest = {
         prompt: params.prompt,
         style_prompt: null,
         selected_images: selectedImageIds,
-        output_count: 1,
+        output_count: params.outputCount,
         aspect_ratio: mapAspectRatioToApi(params.aspectRatio),
-        enable_long: false,
-        auto_merge: true,
-        scene_count: null,
+        enable_long: params.enableLong,
+        auto_merge: params.autoMerge,
+        scene_count: sceneCount,
         character_name: null,
         character_description: null,
-        scenes: null,
+        scenes: scenesData,
         scene_images: null,
         enable_character_consistency: false,
-        mode: 'short',
+        mode: params.enableLong ? 'long' : 'short',
       };
 
       console.log('🎬 Creating video job with data:', requestData);
