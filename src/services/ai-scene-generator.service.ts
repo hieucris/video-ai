@@ -34,26 +34,28 @@ export const generateScenes = async (params: GenerateScenesParams): Promise<stri
         messages: [
           {
             role: 'system',
-            content: `Bạn là một chuyên gia viết kịch bản video. Nhiệm vụ của bạn là tạo ra các mô tả cảnh chi tiết cho video AI dựa trên yêu cầu của người dùng.
-
-Quy tắc quan trọng:
-1. Mỗi cảnh phải có mô tả CHI TIẾT về góc máy, ánh sáng, chuyển động, và không khí
-2. Mỗi cảnh PHẢI kết thúc bằng: "LƯU Ý: KHÔNG CÓ VĂN BẢN HAY PHỤ ĐỀ XUẤT HIỆN TRÊN VIDEO."
-3. Các cảnh phải liên kết mạch lạc với nhau tạo thành một câu chuyện hoàn chỉnh
-4. Sử dụng thuật ngữ điện ảnh chuyên nghiệp (góc cận, toàn cảnh, chuyển động camera, v.v.)
-5. Trả về CHÍNH XÁC ${sceneCount} cảnh, mỗi cảnh trên một dòng riêng
-6. Mỗi cảnh phải từ 2-4 câu văn miêu tả chi tiết
-
-Format trả về:
-Scene 1: [Mô tả chi tiết cảnh 1]. LƯU Ý: KHÔNG CÓ VĂN BẢN HAY PHỤ ĐỀ XUẤT HIỆN TRÊN VIDEO.
-Scene 2: [Mô tả chi tiết cảnh 2]. LƯU Ý: KHÔNG CÓ VĂN BẢN HAY PHỤ ĐỀ XUẤT HIỆN TRÊN VIDEO.
-...`,
+            content: `
+        Bạn là chuyên gia xây dựng kịch bản cho AI tạo video (Veo3).
+        Nhiệm vụ của bạn là tạo ra các mô tả cảnh QUAY VIDEO chi tiết, dùng trực tiếp làm prompt cho hệ thống tạo video AI.
+        
+        QUY TẮC BẮT BUỘC:
+        1. Mỗi cảnh phải mô tả rõ: góc máy (cận cảnh, trung cảnh, toàn cảnh), chuyển động camera, ánh sáng, nhịp điệu và không khí
+        2. Mô tả theo hướng ĐỘNG (video), không mô tả ảnh tĩnh
+        3. Các cảnh phải liên kết logic với nhau thành một mạch kể chuyện liền mạch
+        4. Sử dụng thuật ngữ điện ảnh chuyên nghiệp
+        5. Trả về CHÍNH XÁC ${sceneCount} cảnh, mỗi cảnh trên MỘT DÒNG
+        6. Mỗi cảnh dài từ 2–4 câu, tập trung vào hình ảnh và chuyển động
+        
+        FORMAT TRẢ VỀ (BẮT BUỘC):
+        Scene 1: [Mô tả chi tiết cảnh quay video]. LƯU Ý: KHÔNG CÓ VĂN BẢN HAY PHỤ ĐỀ XUẤT HIỆN TRÊN VIDEO.
+        Scene 2: [Mô tả chi tiết cảnh quay video]. LƯU Ý: KHÔNG CÓ VĂN BẢN HAY PHỤ ĐỀ XUẤT HIỆN TRÊN VIDEO.
+        ...`
           },
           {
             role: 'user',
-            content: `Tạo ${sceneCount} cảnh video cho chủ đề: "${prompt}"`,
-          },
-        ],
+            content: `Tạo ${sceneCount} cảnh video cho chủ đề: "${prompt}". Phong cách điện ảnh, chuyển động mượt, phù hợp để tạo video bằng Veo3.`
+          }
+        ],        
         temperature: 0.8,
         max_tokens: 1500,
       }),

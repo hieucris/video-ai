@@ -10,7 +10,7 @@ const App: React.FC = () => {
       <Routes>
         {/* Login Route - No Layout */}
         <Route path="/login" element={<Login />} />
-        
+
         {/* Main App Routes - With Layout & Protected */}
         <Route
           path="/"
@@ -24,7 +24,7 @@ const App: React.FC = () => {
           <Route path="dashboard" element={<Dashboard />} />
           <Route path="content-manager" element={<ComingSoon />} />
           <Route path="create-content" element={<ComingSoon />} />
-          <Route path="ai-text-to-video" element={<Dashboard />} />
+          <Route path="text-to-video" element={<Dashboard />} />
           <Route path="video-editor" element={<ComingSoon />} />
           <Route path="scheduled-content" element={<ComingSoon />} />
           <Route path="ads-running" element={<ComingSoon />} />
