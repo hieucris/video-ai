@@ -22,20 +22,16 @@ const App: React.FC = () => {
         >
           <Route index element={<Dashboard />} />
           <Route path="dashboard" element={<Dashboard />} />
-          <Route path="content-manager" element={<ComingSoon />} />
-          <Route path="create-content" element={<ComingSoon />} />
+          <Route path="text-to-image" element={<ComingSoon />} />
           <Route path="text-to-video" element={<Dashboard />} />
-          <Route path="video-editor" element={<ComingSoon />} />
-          <Route path="scheduled-content" element={<ComingSoon />} />
-          <Route path="ads-running" element={<ComingSoon />} />
-          <Route path="performance" element={<ComingSoon />} />
-          <Route path="douyin-manager" element={<ComingSoon />} />
-          <Route path="tiktok-manager" element={<ComingSoon />} />
-          <Route path="threads-manager" element={<ComingSoon />} />
-          <Route path="youtube-manager" element={<ComingSoon />} />
-          <Route path="instagram" element={<ComingSoon />} />
-          <Route path="calendar" element={<ComingSoon />} />
-          <Route path="special-reader" element={<ComingSoon />} />
+          <Route path="text-to-animation" element={<ComingSoon />} />
+          <Route path="text-to-music" element={<ComingSoon />} />
+          <Route path="text-to-voice" element={<ComingSoon />} />
+          <Route path="text-to-3d" element={<ComingSoon />} />
+          <Route path="image-to-video" element={<ComingSoon />} />
+          <Route path="audio-enhancement" element={<ComingSoon />} />
+          <Route path="style-transfer" element={<ComingSoon />} />
+          <Route path="image-upscale" element={<ComingSoon />} />
           <Route path="*" element={<NotFound />} />
         </Route>
       </Routes>
