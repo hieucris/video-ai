@@ -1,11 +1,11 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef, useEffect, useCallback } from 'react';
 import { Upload, Smartphone, Monitor, Image as ImageIcon, Sparkles, Wand2, Loader2, Clock, Video, RefreshCw } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Select } from '@/components/ui/select';
 import { cn } from '@/lib/utils';
 import { VIDEO_QUALITIES } from '@/constants';
 import { validateImageFile, validatePrompt } from '@/utils/validation';
-import type { AspectRatio, VideoQuality } from '@/types/video';
+import type { AspectRatio, VideoQuality, VideoGenerationParams } from '@/types/video';
 import { motion, AnimatePresence } from 'framer-motion';
 import { TextArea } from './ui/text-aria';
 import { generateScenes } from '@/services/ai-scene-generator.service';
@@ -13,17 +13,7 @@ import { generateScenes } from '@/services/ai-scene-generator.service';
 type VideoMode = 'short' | 'long';
 
 interface VideoGeneratorProps {
-  onGenerate: (params: {
-    prompt: string;
-    imageId: number | null;
-    aspectRatio: AspectRatio;
-    quality: VideoQuality;
-    enableLong: boolean;
-    autoMerge: boolean;
-    outputCount: number;
-    sceneCount?: number | null;
-    scenes?: string[] | null;
-  }) => void;
+  onGenerate: (params: VideoGenerationParams) => Promise<void>;
   onImageUpload: (file: File) => Promise<number>;
   isGenerating: boolean;
 }
@@ -43,11 +33,31 @@ export const VideoGenerator: React.FC<VideoGeneratorProps> = ({
   const [isEnhancingPrompt, setIsEnhancingPrompt] = useState(false);
   const [showSparkleTooltip, setShowSparkleTooltip] = useState(false);
   const [autoMerge, setAutoMerge] = useState(false);
-  const [outputCount, setOutputCount] = useState(1);
+  // const [outputCount, setOutputCount] = useState(1);
   const [sceneCount, setSceneCount] = useState<number>(2);
   const [generatedScenes, setGeneratedScenes] = useState<string[]>([]);
   const [isGeneratingScenes, setIsGeneratingScenes] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  // Reset form to initial values
+  const resetForm = useCallback(() => {
+    setVideoMode('short');
+    setPrompt('');
+    setUploadedImageId(null);
+    setImagePreview(null);
+    setAspectRatio('16:9');
+    setQuality('1080p');
+    setAutoMerge(false);
+    setSceneCount(2);
+    setGeneratedScenes([]);
+
+    // Reset file input
+    if (fileInputRef.current) {
+      fileInputRef.current.value = '';
+    }
+
+    console.log('✅ Form reset to initial values');
+  }, []);
 
   const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -120,7 +130,7 @@ export const VideoGenerator: React.FC<VideoGeneratorProps> = ({
     }
   }, [sceneCount, generatedScenes.length]);
 
-  const handleGenerate = () => {
+  const handleGenerate = async () => {
     const validation = validatePrompt(prompt);
     if (!validation.valid) {
       alert(validation.error);
@@ -135,17 +145,25 @@ export const VideoGenerator: React.FC<VideoGeneratorProps> = ({
       return;
     }
 
-    onGenerate({
-      prompt,
-      imageId: uploadedImageId,
-      aspectRatio,
-      quality,
-      enableLong,
-      autoMerge,
-      outputCount,
-      sceneCount: enableLong ? sceneCount : null,
-      scenes: enableLong ? generatedScenes : null,
-    });
+    try {
+      await onGenerate({
+        prompt,
+        imageId: uploadedImageId,
+        aspectRatio,
+        quality,
+        enableLong,
+        autoMerge,
+        outputCount: 1,
+        sceneCount: enableLong ? sceneCount : null,
+        scenes: enableLong ? generatedScenes : null,
+      });
+
+      // Reset form after successful generation
+      resetForm();
+    } catch (error) {
+      // Error is already handled in the hook, so we don't need to do anything here
+      console.error('Error in handleGenerate:', error);
+    }
   };
 
   const handleUploadClick = () => {
@@ -447,24 +465,24 @@ export const VideoGenerator: React.FC<VideoGeneratorProps> = ({
     </div>
   );
 
-  const renderOutputCountSection = () => (
-    <div className="mb-6">
-      <label className="block text-sm font-medium text-gray-700 mb-2">
-        Số lượng video
-      </label>
-      <Select
-        value={outputCount.toString()}
-        onChange={(e) => setOutputCount(Number(e.target.value))}
-        options={[
-          { value: '1', label: '1 video' },
-          { value: '2', label: '2 videos' },
-          { value: '3', label: '3 videos' },
-          { value: '4', label: '4 videos' },
-          { value: '5', label: '5 videos' },
-        ]}
-      />
-    </div>
-  );
+  // const renderOutputCountSection = () => (
+  //   <div className="mb-6">
+  //     <label className="block text-sm font-medium text-gray-700 mb-2">
+  //       Số lượng video
+  //     </label>
+  //     <Select
+  //       value={outputCount.toString()}
+  //       onChange={(e) => setOutputCount(Number(e.target.value))}
+  //       options={[
+  //         { value: '1', label: '1 video' },
+  //         { value: '2', label: '2 videos' },
+  //         { value: '3', label: '3 videos' },
+  //         { value: '4', label: '4 videos' },
+  //         { value: '5', label: '5 videos' },
+  //       ]}
+  //     />
+  //   </div>
+  // );
 
   const renderQualitySection = () => (
     <div className="mb-5">
@@ -554,7 +572,7 @@ export const VideoGenerator: React.FC<VideoGeneratorProps> = ({
               {renderPromptSection()}
               {renderImageUploadSection()}
               {renderAspectRatioSection()}
-              {renderOutputCountSection()}
+              {/* {renderOutputCountSection()} */}
               {renderQualitySection()}
             </motion.div>
           )}

@@ -43,13 +43,6 @@ export const validatePrompt = (prompt: string): { valid: boolean; error?: string
     };
   }
 
-  if (trimmedPrompt.length > 500) {
-    return {
-      valid: false,
-      error: 'Mô tả quá dài! Vui lòng nhập tối đa 500 ký tự',
-    };
-  }
-
   return { valid: true };
 };
 

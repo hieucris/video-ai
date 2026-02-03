@@ -293,7 +293,7 @@ export const useVideoGeneration = () => {
     }
   }, []);
 
-  const generateVideo = useCallback(async (params: VideoGenerationParams) => {
+  const generateVideo = useCallback(async (params: VideoGenerationParams): Promise<void> => {
     setIsGenerating(true);
 
     try {
@@ -312,7 +312,7 @@ export const useVideoGeneration = () => {
         prompt: params.prompt,
         style_prompt: null,
         selected_images: selectedImageIds,
-        output_count: params.outputCount,
+        output_count: params.outputCount ?? 1,
         aspect_ratio: mapAspectRatioToApi(params.aspectRatio),
         enable_long: params.enableLong,
         auto_merge: params.autoMerge,
@@ -347,6 +347,7 @@ export const useVideoGeneration = () => {
       startPolling();
 
       setIsGenerating(false);
+      // Success - no error thrown
     } catch (error) {
       console.error('Error generating video:', error);
       
@@ -354,6 +355,9 @@ export const useVideoGeneration = () => {
       
       const errorMessage = error instanceof Error ? error.message : 'Failed to generate video';
       alert(errorMessage);
+      
+      // Re-throw error so VideoGenerator knows it failed
+      throw error;
     }
   }, [startPolling]);
 
