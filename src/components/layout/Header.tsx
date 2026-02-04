@@ -73,9 +73,9 @@ export const Header: React.FC<HeaderProps> = ({ onMenuToggle }) => {
                   <p className="text-sm font-medium text-gray-700">
                     {user?.name || 'User'}
                   </p>
-                  <p className="text-xs text-purple-600 font-semibold">
+                  {/* <p className="text-xs text-purple-600 font-semibold">
                     {getUserRole()}
-                  </p>
+                  </p> */}
                 </div>
                 <ChevronDown className={`h-4 w-4 text-gray-500 transition-transform ${isDropdownOpen ? 'rotate-180' : ''}`} />
               </button>

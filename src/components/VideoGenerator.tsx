@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect, useCallback } from 'react';
-import { Upload, Smartphone, Monitor, Image as ImageIcon, Sparkles, Wand2, Loader2, Clock, Video, RefreshCw } from 'lucide-react';
+import { Upload, Smartphone, Monitor, Image as ImageIcon, Sparkles, Wand2, Loader2, Clock, Video, RefreshCw, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Select } from '@/components/ui/select';
 import { cn } from '@/lib/utils';
@@ -90,6 +90,16 @@ export const VideoGenerator: React.FC<VideoGeneratorProps> = ({
     } finally {
       setIsUploadingImage(false);
     }
+  };
+
+  const handleRemoveImage = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    setImagePreview(null);
+    setUploadedImageId(null);
+    if (fileInputRef.current) {
+      fileInputRef.current.value = '';
+    }
+    console.log('🗑️ Image removed');
   };
 
   // Handle generating scenes for long video
@@ -378,7 +388,7 @@ export const VideoGenerator: React.FC<VideoGeneratorProps> = ({
               <img
                 src={imagePreview}
                 alt="Preview"
-                className="w-full h-full object-cover"
+                className="w-full h-full object-contain"
               />
               {isUploadingImage ? (
                 <div className="absolute inset-0 bg-black/60 flex items-center justify-center">
@@ -388,12 +398,23 @@ export const VideoGenerator: React.FC<VideoGeneratorProps> = ({
                   </div>
                 </div>
               ) : (
-                <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
-                  <div className="text-white text-center">
-                    <Upload className="h-8 w-8 mx-auto mb-2" />
-                    <p className="text-sm font-medium">Thay đổi ảnh</p>
+                <>
+                  <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                    <div className="text-white text-center">
+                      <Upload className="h-8 w-8 mx-auto mb-2" />
+                      <p className="text-sm font-medium">Thay đổi ảnh</p>
+                    </div>
                   </div>
-                </div>
+                  <motion.button
+                    onClick={handleRemoveImage}
+                    whileHover={{ scale: 1.1 }}
+                    whileTap={{ scale: 0.9 }}
+                    className="absolute top-3 right-3 p-2 bg-red-500 hover:bg-red-600 text-white rounded-full shadow-lg transition-all z-10"
+                    aria-label="Remove image"
+                  >
+                    <X className="h-4 w-4" />
+                  </motion.button>
+                </>
               )}
             </>
           ) : (
